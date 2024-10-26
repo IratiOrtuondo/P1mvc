@@ -10,6 +10,15 @@ import java.io.InputStreamReader;
 
 public class EditableBufferedReader extends BufferedReader {
     private boolean insertMode; // Modo inserción o sobreescritura
+    
+    // Constantes para teclas especiales
+    private static final int ARROW_RIGHT = -102;
+    private static final int ARROW_LEFT = -103;
+    private static final int HOME = -104;
+    private static final int END = -105;
+    private static final int BACKSPACE = -106;
+    private static final int DELETE = -107;
+    private static final int INSERT = -108;
 
     public EditableBufferedReader(InputStreamReader in) {
         super(in);
@@ -45,25 +54,25 @@ public class EditableBufferedReader extends BufferedReader {
             super.read(); // Lee y descarta '['
             int arrowKey = super.read();
             switch (arrowKey) {
-                case 'C': return -102; // Flecha derecha (Right Arrow)
-                case 'D': return -103; // Flecha izquierda (Left Arrow)
-                case 'H': return -104; // Home (Inicio de línea)
-                case 'F': return -105; // End (Final de línea)
+                case 'C': return ARROW_RIGHT; // Flecha derecha (Right Arrow)
+                case 'D': return ARROW_LEFT; // Flecha izquierda (Left Arrow)
+                case 'H': return HOME; // Home (Inicio de línea)
+                case 'F': return END; // End (Final de línea)
                 case '2': // Podría ser la tecla Insert
                     int tilde = super.read();
                     if (tilde == '~') {
-                        return -108; // Insert (cambia entre modo inserción/sobreescritura)
+                        return INSERT; // Insert (cambia entre modo inserción/sobreescritura)
                     }
                     break;
                 case '3': // Podría ser la tecla Delete
                     int tilde2 = super.read();
                     if (tilde2 == '~') {
-                        return -107; // Delete (Borrar el carácter actual)
+                        return -DELETE; // Delete (Borrar el carácter actual)
                     }
                     break;
             }
         } else if (c == 127) {
-            return -106; // Backspace (Borrar el carácter a la izquierda)
+            return BACKSPACE; // Backspace (Borrar el carácter a la izquierda)
         }
         return c; // Retorna el carácter normal si no es especial
     }
@@ -89,40 +98,40 @@ public class EditableBufferedReader extends BufferedReader {
             }
 
             switch (key) {
-                case -102: // Flecha derecha
+                case ARROW_RIGHT: // Flecha derecha
                     if (cursorPos < buffer.length()) {
                         cursorPos++; // Mueve el cursor a la derecha
                     }
                     break;
 
-                case -103: // Flecha izquierda
+                case ARROW_LEFT: // Flecha izquierda
                     if (cursorPos > 0) {
                         cursorPos--; // Mueve el cursor a la izquierda
                     }
                     break;
 
-                case -104: // Home
+                case HOME: // Home
                     cursorPos = 0; // Mueve el cursor al inicio de la línea
                     break;
 
-                case -105: // End
+                case END: // End
                     cursorPos = buffer.length(); // Mueve el cursor al final de la línea
                     break;
 
-                case -106: // Backspace
+                case BACKSPACE: // Backspace
                     if (cursorPos > 0) {
                         buffer.deleteCharAt(cursorPos - 1); // Borra el carácter a la izquierda
                         cursorPos--;
                     }
                     break;
 
-                case -107: // Delete
+                case DELETE: // Delete
                     if (cursorPos < buffer.length()) {
                         buffer.deleteCharAt(cursorPos); // Borra el carácter actual
                     }
                     break;
 
-                case -108: // Insert (cambiar entre modo inserción/sobreescritura)
+                case INSERT: // Insert (cambiar entre modo inserción/sobreescritura)
                     toggleInsertMode(); // Alterna el modo
                     System.out.println("\nModo de inserción: " + (insertMode ? "Desactivado" : "Activado"));
                     break;
