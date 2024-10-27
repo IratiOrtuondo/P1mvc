@@ -81,13 +81,41 @@ public class EditableBufferedReader extends BufferedReader {
     @Override
     public String readLine() throws IOException {
         StringBuilder buffer = new StringBuilder();
+        String lastText = "";
         int cursorPos = 0;
 
         while (true) {
-            // Imprimir el contenido actual
-            System.out.print("\r" + buffer.toString() + " "); // Imprimir buffer
-            // Mover el cursor a la posición correcta
-            System.out.print("\r" + buffer.toString());
+//            // Imprimir el contenido actual
+//            System.out.print("\r" + buffer.toString() + " "); // Imprimir buffer
+//            // Mover el cursor a la posición correcta
+//            System.out.print("\r" + buffer.toString());
+ // Solo actualiza si el texto ha cambiado
+        if (!buffer.equals(lastText)) {
+            // Imprime los caracteres que han cambiado
+            int minLength = Math.min(buffer.length(), lastText.length());
+
+            for (int i = 0; i < minLength; i++) {
+                if (buffer.charAt(i) != lastText.charAt(i)) {
+                    // Mueve el cursor a la posición correcta y reemplaza el carácter
+                    moveCursor(i);
+                    System.out.print(buffer.charAt(i));
+                }
+            }
+
+            // Si el nuevo texto es más largo, imprime el resto
+            if (buffer.length() > lastText.length()) {
+                System.out.print(buffer.substring(minLength));
+            }
+
+            // Si el nuevo texto es más corto, limpia el sobrante
+            else if (buffer.length() < lastText.length()) {
+                System.out.print(" ".repeat(lastText.length() - buffer.length()));
+            }
+
+            // Actualiza el texto guardado
+            lastText = buffer.toString(); 
+        }
+
             // Esto mueve el cursor al final del texto actual
             moveCursor(cursorPos);
 
@@ -133,7 +161,6 @@ public class EditableBufferedReader extends BufferedReader {
 
                 case INSERT: // Insert (cambiar entre modo inserción/sobreescritura)
                     toggleInsertMode(); // Alterna el modo
-                    System.out.println("\nModo de inserción: " + (insertMode ? "Desactivado" : "Activado"));
                     break;
 
                 default: // Cualquier otro carácter normal
@@ -152,7 +179,7 @@ public class EditableBufferedReader extends BufferedReader {
         }
 
         // Al final de la entrada, imprimimos el buffer final
-        System.out.print("\r" + buffer.toString() + "\n");
+//        System.out.print("\r" + buffer.toString() + "\n");
         return buffer.toString();
     }
 
