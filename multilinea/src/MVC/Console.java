@@ -17,7 +17,7 @@ import java.io.InputStreamReader;
 class Console {
     
     private MultiLine model;
-
+    
     public void displayText(String text, int cursorPos) throws IOException {
 
         // Limpiar la consola y mostrar el texto
@@ -31,31 +31,25 @@ class Console {
         moveCursor(cursorPos);
     }
 
-    public void showInsertMode(boolean isInsertMode) {
-        System.out.println("\nModo de inserción: " + (isInsertMode ? "Desactivado" : "Activado"));
-    }
-
-    private void moveCursor(int position) {
-        // Esto mueve el cursor hacia la derecha usando escape sequences
-        System.out.print("\033[" + (position + 1) + "G"); // Mueve el cursor a la posición dada
+    
+    private void moveCursor(int position) throws IOException {
+        System.out.print("\033[" + (position + 1) + "G"); // Mover a la columna
     }
     
         // Función que ejecuta el comando 'stty size' para obtener el tamaño de la terminal
-    public static int getTerminalWidth() throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", "stty size < /dev/tty");
-        Process process = processBuilder.start();
 
+    
+       private static int getTerminalWidth() throws IOException {
+    int width = 20; // Valor por defecto
+        Process process = Runtime.getRuntime().exec(new String[] { "sh", "-c", "tput cols 2> /dev/tty" });
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String output = reader.readLine();
-
-        if (output != null) {
-            String[] parts = output.split(" ");
-            return Integer.parseInt(parts[1]); // El segundo valor es el ancho
+        String line = reader.readLine();
+        if (line != null && !line.trim().isEmpty()) {
+            width = Integer.parseInt(line.trim()); // Limpia los espacios en blanco y saltos de línea
         }
-
-        return -1; // Si falla la obtención del ancho
-    }
-
+    return width;
+}
+ 
     // Función que calcula cuántas líneas ocupa el texto dado el ancho de la terminal
     public static int calculateLines(String text, int terminalWidth) {
         if (terminalWidth <= 0) {
@@ -65,6 +59,9 @@ class Console {
         return (textLength + terminalWidth - 1) / terminalWidth; // Calcular líneas ocupadas
     }
 
+    
+    
+    
     // Función que limpia las líneas en la terminal
 public static void clearLines(int numLines) {
   

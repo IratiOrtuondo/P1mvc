@@ -16,13 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditableBufferedReader extends BufferedReader {
-    private MultiLine model;
-    private Console view;
+    // Constantes para teclas especiales
+    private static final int ARROW_RIGHT = -102;
+    private static final int ARROW_LEFT = -103;
+    private static final int HOME = -104;
+    private static final int END = -105;
+    private static final int BACKSPACE = -106;
+    private static final int DELETE = -107;
+    private static final int INSERT = -108;
+    
 
     public EditableBufferedReader(Reader in) {
         super(in);
-        this.model = new MultiLine();
-        this.view = new Console();
     }
 
     public void setRaw() {
@@ -30,7 +35,6 @@ public class EditableBufferedReader extends BufferedReader {
             Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "stty -echo raw </dev/tty"}).waitFor();
         } catch (IOException | InterruptedException e) {
             System.err.println("Error al establecer modo raw: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -39,52 +43,45 @@ public class EditableBufferedReader extends BufferedReader {
             Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "stty echo cooked </dev/tty"}).waitFor();
         } catch (IOException | InterruptedException e) {
             System.err.println("Error al regresar al modo normal: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     @Override
     public String readLine() throws IOException {
+        MultiLine model = new MultiLine();
+        Console view = new Console();
         setRaw();
         try {
-            run();
-        } finally {
-            unsetRaw();
-        }
-        return model.getText(); // Devolver todas las líneas
-    }
-
-    public void run() throws IOException {
+            
         int key;
-        while ((key = readKey()) != 13) { // Mientras no se presione Enter
+        while ((key = read()) != 13) { // Mientras no se presione Enter
             switch (key) {
-                case -102: // Flecha derecha
+                case ARROW_RIGHT: // Flecha derecha
                     model.moveCursorRight();
                     break;
 
-                case -103: // Flecha izquierda
+                case ARROW_LEFT: // Flecha izquierda
                     model.moveCursorLeft();
                     break;
 
-                case -104: // Home
+                case HOME: // Home
                     model.moveCursorHome();
                     break;
 
-                case -105: // End
+                case END: // End
                     model.moveCursorEnd();
                     break;
 
-                case -106: // Backspace
+                case BACKSPACE: // Backspace
                     model.deleteCharBeforeCursor();
                     break;
 
-                case -107: // Delete
+                case DELETE: // Delete
                     model.deleteCharAtCursor();
                     break;
 
-                case -108: // Insert
+                case INSERT: // Insert
                     model.toggleInsertMode();
-                    view.showInsertMode(model.isInsertMode());
                     break;
 
 
@@ -99,29 +96,34 @@ public class EditableBufferedReader extends BufferedReader {
 
             view.displayText(model.getText(), model.getCursorPos());
         }
+        } finally {
+            unsetRaw();
+        }
+        return model.getText(); // Devolver todas las líneas
     }
 
-    public int readKey() throws IOException {
+   
+    public int read() throws IOException {
         int c = super.read();
         if (c == 27) { // Si se detecta ESC
             super.read(); // Lee y descarta '['
             int arrowKey = super.read();
             switch (arrowKey) {
-                case 'C': return -102; // Flecha derecha
-                case 'D': return -103; // Flecha izquierda
-                case 'H': return -104; // Home
-                case 'F': return -105; // End
+                case 'C': return ARROW_RIGHT; // Flecha derecha
+                case 'D': return ARROW_LEFT; // Flecha izquierda
+                case 'H': return HOME; // Home
+                case 'F': return END; // End
                 case '2':
                     int tilde = super.read();
-                    if (tilde == '~') return -108; // Insert
+                    if (tilde == '~') return INSERT; // Insert
                     break;
                 case '3':
                     int tilde2 = super.read();
-                    if (tilde2 == '~') return -107; // Delete
+                    if (tilde2 == '~') return DELETE; // Delete
                     break;
             }
         } else if (c == 127) {
-            return -106; // Backspace
+            return BACKSPACE; // Backspace
         }
         return c; // Retorna el carácter normal si no es una tecla especial
     }
