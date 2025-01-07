@@ -28,13 +28,21 @@ class Console {
         
         // Mover el cursor a la posición correcta
         System.out.print("\r" + text + " ");
-        moveCursor(cursorPos);
+        moveCursor(cursorPos, lineas);
     }
 
     
-    private void moveCursor(int position) throws IOException {
-        System.out.print("\033[" + (position + 1) + "G"); // Mover a la columna
-    }
+   private void moveCursor(int cursorPos, int numLines) throws IOException {
+    	// Posicionar el cursor en la posición deseada dentro del texto
+    	int targetRow = cursorPos / getTerminalWidth();
+    	int targetCol = cursorPos % getTerminalWidth();
+
+    	for (int i = numLines - targetRow - 1; i > 0; i--) {
+        	System.out.print("\033[1A"); // Subir las líneas necesarias
+    	}
+    	System.out.print("\033[" + (targetCol + 1) + "G"); // Mover el cursor a la columna correcta
+	}
+
     
         // Función que ejecuta el comando 'stty size' para obtener el tamaño de la terminal
 
