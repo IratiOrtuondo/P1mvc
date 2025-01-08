@@ -24,7 +24,7 @@ public class EditableBufferedReader extends BufferedReader {
     private int r0 = 0; // Fila actual del cursor
     private int c0 = 0; // Columna actual del cursor
     private int rf = 0; // Última fila con texto
-    private int cf = 80; // Número de columnas en el terminal
+    private int cf = 80; // Número de columnas en el terminal--> despues calcularemos este valor con la funcion getTerminalWidth()
     private int startRow = 0; // Fila inicial del cursor
 
     public EditableBufferedReader(Reader in) {
